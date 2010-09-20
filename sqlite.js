@@ -16,9 +16,16 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 // TODO: async
 
+function mixin(target, source) {
+  for (var name in source) {
+    if (source.hasOwnProperty(name))
+      target[name] = source[name];
+  }
+}
+
 var bindings = require("./sqlite3_bindings");
-process.mixin(GLOBAL, bindings);
-process.mixin(exports, bindings);
+mixin(GLOBAL, bindings);
+mixin(exports, bindings);
 
 
 // Conform somewhat to http://dev.w3.org/html5/webdatabase/#sql
