@@ -1,10 +1,10 @@
 // Test script for node_sqlite
 
 var sys = require("sys");
-var posix = require("posix");
+var fs = require("fs");
 var sqlite = require("./sqlite");
 
-posix.unlink('test.db');
+fs.unlink('test.db');
 
 function asserteq(v1, v2) {
   if (v1 != v2) {
