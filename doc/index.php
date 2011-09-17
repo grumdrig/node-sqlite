@@ -43,7 +43,8 @@ The spiritual home of node-sqlite is at
         http://grumdrig.github.com/node-sqlite/</a>.
 
 <p>
-The code lives at <a href=http://code.google.com/p/node-sqlite/>http://code.google.com/p/node-sqlite/</a>.
+The code lives at <a href=http://github.com/grumdrig/node-sqlite>
+                          http://github.com/grumdrig/node-sqlite</a>
 
 <? readfile('examples.html') ?>
 
