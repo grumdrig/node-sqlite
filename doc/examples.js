@@ -2,7 +2,7 @@
 /*
 //!! To be processed by docbyex.py (or run by Node)
 
-<h2>Documentation by Example</h2>
+Documentation by Example ::
 */
 
 // Import the library and open a database. (Only syncronous database
