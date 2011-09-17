@@ -38,7 +38,9 @@ the asynchronous API is a big TODO item.
 
 <h2>Download</h2>
 <p>
-The spiritual home of node-sqlite is at <a href=http://grumdrig.com/node-sqlite/>http://grumdrig.com/node-sqlite/</a>.
+The spiritual home of node-sqlite is at 
+<a href=http://grumdrig.github.com/node-sqlite/>
+        http://grumdrig.github.com/node-sqlite/</a>.
 
 <p>
 The code lives at <a href=http://code.google.com/p/node-sqlite/>http://code.google.com/p/node-sqlite/</a>.
