@@ -1,6 +1,6 @@
 #!/usr/local/bin/node
 /*
-//!! To be processed by docbyex.py (or run by Node)
+//!! To be processed by docbyex.py, or run by Node
 
 Documentation by Example ::
 */
@@ -10,6 +10,7 @@ Documentation by Example ::
 
 var sqlite = require("../sqlite");
 var db = sqlite.openDatabaseSync("example.db");
+var assert = require("assert").ok;
 
 // Perform an SQL query on the database:
 
@@ -46,20 +47,20 @@ db.query("INSERT INTO bar (x,y,z) VALUES ($x,$y,$zebra)",
 // representing the results of the query:
 
 db.query("SELECT x FROM bar", function (records) {
-  process.assert(records.length == 1);
-  process.assert(records[0].x == 10);
+  assert(records.length == 1);
+  assert(records[0].x == 10);
 
   // The HTML5 semantics for the record set also work:
 
-  process.assert(records.rows.length == 1);
-  process.assert(records.rows.item(0).x == 10);
+  assert(records.rows.length == 1);
+  assert(records.rows.item(0).x == 10);
 });
 
 // INSERT, UPDATE & DELETE queries set `rowsAffected` on their result
 // set object:
 
 db.query("UPDATE foo SET a = ? WHERE a = ?", ['orange', 'apple'], function(r) {
-  process.assert(r.rowsAffected == 1);
+  assert(r.rowsAffected == 1);
 });
 
 // They also emit an `"update"` event.
@@ -67,7 +68,7 @@ db.query("UPDATE foo SET a = ? WHERE a = ?", ['orange', 'apple'], function(r) {
 // INSERT queries set `insertId`:
 
 var insert = db.query("INSERT INTO foo VALUES (1,2,3)");
-process.assert(insert.insertId == 2);
+assert(insert.insertId == 2);
 
 // Note here that the result set passed to the callback is also
 // returned by `query`.
@@ -76,20 +77,20 @@ process.assert(insert.insertId == 2);
 
 var q = db.query("UPDATE bar SET z=20; SELECT SUM(z) FROM bar;",
                  function (update, select) {
-                   process.assert(update.rowsAffected == 1);
-                   process.assert(select[0]['SUM(z)'] == 20);
+                   assert(update.rowsAffected == 1);
+                   assert(select[0]['SUM(z)'] == 20);
                  });
 
 // An array of all result sets is available as the `.all` property on
 // each result set:
 
-process.assert(q.all[1].length == 1);
+assert(q.all[1].length == 1);
 
 // HTML5 semantics are supported.
 
 db.transaction(function(tx) {
   tx.executeSql("SELECT * FROM foo WHERE c = ?", [3], function(tx,res) {
-    process.assert(res.rows.item(0).c == 3);
+    assert(res.rows.item(0).c == 3);
   });
 });
 
@@ -116,9 +117,7 @@ db.close();
 // !!**
 // Might as well clean up the mess we made.
 
-var posix = require("posix");
-posix.unlink('example.db');
+require('fs').unlink('example.db');
 
 var sys = require("sys");
 sys.puts("OK");
-

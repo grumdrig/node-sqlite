@@ -6,12 +6,14 @@ var sqlite = require("./sqlite");
 
 fs.unlink('test.db');
 
+var assert = require("assert").ok;
+
 function asserteq(v1, v2) {
   if (v1 != v2) {
     sys.puts(sys.inspect(v1));
     sys.puts(sys.inspect(v2));
   }
-  process.assert(v1 == v2);
+  assert(v1 == v2);
 }
 
 var db = sqlite.openDatabaseSync('test.db');
@@ -38,10 +40,10 @@ db.addListener("update", function (operation, database, table, rowid) {
 
 db.query("CREATE TABLE egg (a,y,e)");
 db.query("INSERT INTO egg (a) VALUES (1)", function () {
-  process.assert(this.insertId == 1);
+  assert(this.insertId == 1);
 });
 var i2 = db.query("INSERT INTO egg (a) VALUES (?)", [5]);
-process.assert(i2.insertId == 2);
+assert(i2.insertId == 2);
 db.query("UPDATE egg SET y='Y'; UPDATE egg SET e='E';");
 db.query("UPDATE egg SET y=?; UPDATE egg SET e=? WHERE ROWID=1", 
          ["arm","leg"] );
@@ -55,8 +57,8 @@ db.query("SELECT * FROM egg", function (rows) {
 db.query("SELECT a FROM egg; SELECT y FROM egg", function (as, ys) {
   sys.puts("As " + JSON.stringify(as));
   sys.puts("Ys " + JSON.stringify(ys));
-  process.assert(as.length == 4);
-  process.assert(ys.length == 4);
+  assert(as.length == 4);
+  assert(ys.length == 4);
 });
 
 db.query("SELECT e FROM egg WHERE a = ?", [5], function (es) {
@@ -87,7 +89,7 @@ db.query("CREATE TABLE test (x,y,z)", function () {
 db.query("SELECT * FROM test WHERE rowid < ?;", [1]);
 
 db.query("UPDATE test SET y = 10;", [], function () {
-  process.assert(this.rowsAffected == 2);
+  assert(this.rowsAffected == 2);
 });
 
 db.transaction(function(tx) {

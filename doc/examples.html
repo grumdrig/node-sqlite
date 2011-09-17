@@ -32,6 +32,7 @@ access is implemented at this time.)
 <pre>
 var sqlite = require("../sqlite");
 var db = sqlite.openDatabaseSync("example.db");
+var assert = require("assert").ok;
 </pre>
 <p>
 Perform an SQL query on the database:
@@ -80,15 +81,15 @@ representing the results of the query:
 <p>
 <pre>
 db.query("SELECT x FROM bar", function (records) {
-  process.assert(records.length == 1);
-  process.assert(records[0].x == 10);
+  assert(records.length == 1);
+  assert(records[0].x == 10);
 </pre>
 <p>
 The HTML5 semantics for the record set also work:
 <p>
 <pre>
-  process.assert(records.rows.length == 1);
-  process.assert(records.rows.item(0).x == 10);
+  assert(records.rows.length == 1);
+  assert(records.rows.item(0).x == 10);
 });
 </pre>
 <p>
@@ -97,7 +98,7 @@ set object:
 <p>
 <pre>
 db.query("UPDATE foo SET a = ? WHERE a = ?", ['orange', 'apple'], function(r) {
-  process.assert(r.rowsAffected == 1);
+  assert(r.rowsAffected == 1);
 });
 </pre>
 <p>
@@ -107,7 +108,7 @@ INSERT queries set <code>insertId</code>:
 <p>
 <pre>
 var insert = db.query("INSERT INTO foo VALUES (1,2,3)");
-process.assert(insert.insertId == 2);
+assert(insert.insertId == 2);
 </pre>
 <p>
 Note here that the result set passed to the callback is also
@@ -118,8 +119,8 @@ Multiple-statement queries are supported; each statement's result set is retuned
 <pre>
 var q = db.query("UPDATE bar SET z=20; SELECT SUM(z) FROM bar;",
                  function (update, select) {
-                   process.assert(update.rowsAffected == 1);
-                   process.assert(select[0]['SUM(z)'] == 20);
+                   assert(update.rowsAffected == 1);
+                   assert(select[0]['SUM(z)'] == 20);
                  });
 </pre>
 <p>
@@ -127,7 +128,7 @@ An array of all result sets is available as the <code>.all</code> property on
 each result set:
 <p>
 <pre>
-process.assert(q.all[1].length == 1);
+assert(q.all[1].length == 1);
 </pre>
 <p>
 HTML5 semantics are supported.
@@ -135,7 +136,7 @@ HTML5 semantics are supported.
 <pre>
 db.transaction(function(tx) {
   tx.executeSql("SELECT * FROM foo WHERE c = ?", [3], function(tx,res) {
-    process.assert(res.rows.item(0).c == 3);
+    assert(res.rows.item(0).c == 3);
   });
 });
 </pre>
@@ -168,4 +169,3 @@ db.close();
 </pre>
 <p>
 </pre>
-<p>
