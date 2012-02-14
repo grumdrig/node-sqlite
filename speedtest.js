@@ -1,6 +1,6 @@
 // Speed test for SQL. Based on http://www.sqlite.org/speed.html
 
-var sys = require("sys");
+var util = require("util");
 var posix = require("posix");
 
 try {
@@ -66,7 +66,7 @@ function time(section) {
   var now = (new Date()).getTime();
   if (SECTION) {
     var elapsed = ((now - LASTTIME)/1000.0).toFixed(3);
-    sys.puts(elapsed + ' ' + SECTION);
+    util.puts(elapsed + ' ' + SECTION);
   }
   SECTION = section;
   LASTTIME = now;

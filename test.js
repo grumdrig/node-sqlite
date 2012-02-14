@@ -1,6 +1,6 @@
 // Test script for node_sqlite
 
-var sys = require("sys");
+var util = require("util");
 var fs = require("fs");
 var sqlite = require("./sqlite");
 
@@ -10,8 +10,8 @@ var assert = require("assert").ok;
 
 function asserteq(v1, v2) {
   if (v1 != v2) {
-    sys.puts(sys.inspect(v1));
-    sys.puts(sys.inspect(v2));
+    util.puts(util.inspect(v1));
+    util.puts(util.inspect(v2));
   }
   assert(v1 == v2);
 }
@@ -27,12 +27,12 @@ db.addListener("commit", function () {
 });
 
 db.addListener("rollback", function () {
-  sys.puts("ROLLBACK");
+  util.puts("ROLLBACK");
   rollbacks++;
 });
 
 db.addListener("update", function (operation, database, table, rowid) {
-  //sys.puts("update " + operation + " " + database + "." + table + " " + rowid);
+  //util.puts("update " + operation + " " + database + "." + table + " " + rowid);
   updates++;
 });
 
@@ -51,12 +51,12 @@ db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", [1.01, 10e20, -0.0]);
 db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", ["one", "two", "three"]);
 
 db.query("SELECT * FROM egg", function (rows) {
-  sys.puts(JSON.stringify(rows));
+  util.puts(JSON.stringify(rows));
 });
 
 db.query("SELECT a FROM egg; SELECT y FROM egg", function (as, ys) {
-  sys.puts("As " + JSON.stringify(as));
-  sys.puts("Ys " + JSON.stringify(ys));
+  util.puts("As " + JSON.stringify(as));
+  util.puts("Ys " + JSON.stringify(ys));
   assert(as.length == 4);
   assert(ys.length == 4);
 });
@@ -121,7 +121,7 @@ asserteq(updates, 19);
 
 
 db.close();
-sys.puts("OK\n");
+util.puts("OK\n");
              
 // Perhaps do this, one day
 //var q = db.prepare("SELECT * FROM t WHERE rowid=?");
