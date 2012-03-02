@@ -135,8 +135,11 @@ function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
 
   db.removeListener("rollback", unroll);
 
-  if (!this.rolledBack && successCallback) 
+  if (!this.rolledBack && successCallback) {
     successCallback(this);
+  } else if (errCallback) {
+    errCallback(this);
+  }
 }
 
 
