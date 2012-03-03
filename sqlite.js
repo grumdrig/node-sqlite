@@ -137,7 +137,7 @@ function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
 
   if (!this.rolledBack && successCallback) {
     successCallback(this);
-  } else if (errCallback) {
+  } else if (this.rolledBack && errCallback) {
     errCallback(this);
   }
 }
