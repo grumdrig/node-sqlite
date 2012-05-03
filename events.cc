@@ -90,4 +90,4 @@ bool EventEmitter::Emit(Handle<String> event, int argc, Handle<Value> argv[]) {
   return true;
 }
 
-}  // namespace node
+}  // namespace node_sqlite_events
