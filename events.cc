@@ -19,13 +19,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include <events.h>
+#include "events.h"
 #include <node.h>
 
-namespace node {
+namespace node_sqlite_events {
 
 using namespace v8;
-using namespace node_sqlite_events;
+using namespace node;
 
 Persistent<FunctionTemplate> EventEmitter::constructor_template;
 
