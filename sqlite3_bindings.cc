@@ -16,10 +16,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <sqlite3.h>
 #include <v8.h>
 #include <node.h>
-#include <node_events.h>
+#include "events.h"
 
 using namespace v8;
 using namespace node;
+using namespace node_sqlite_events;
 
 
 #define CHECK(rc) { if ((rc) != SQLITE_OK)                              \

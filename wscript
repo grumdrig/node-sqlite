@@ -27,5 +27,5 @@ def configure(conf):
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   obj.target = "sqlite3_bindings"
-  obj.source = "sqlite3_bindings.cc"
+  obj.source = "sqlite3_bindings.cc events.cc"
   obj.uselib = "SQLITE3"
