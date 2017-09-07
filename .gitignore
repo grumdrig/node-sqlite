@@ -3,3 +3,5 @@ README.html
 test.db
 .lock-wscript
 speedtest.db
+node_modules/
+package-lock.json

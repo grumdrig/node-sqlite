@@ -23,7 +23,7 @@ function mixin(target, source) {
   }
 }
 
-var bindings = require("./sqlite3_bindings");
+var bindings = require("./build/Release/sqlite3_bindings");
 mixin(GLOBAL, bindings);
 mixin(exports, bindings);
 
@@ -35,7 +35,7 @@ exports.SQLITE_INSERT = 18;
 exports.SQLITE_UPDATE = 23;
 
 
-exports.openDatabaseSync = function (name, version, displayName, 
+exports.openDatabaseSync = function (name, version, displayName,
                                      estimatedSize, creationCallback) {
   // 2nd-4th parameters are ignored
   var db = new DatabaseSync(name);
@@ -53,7 +53,7 @@ DatabaseSync.prototype.query = function (sql, bindings, callback) {
   }
 
   var all = [];
-  
+
   var stmt = this.prepare(sql);
   while(stmt) {
     if (bindings) {
@@ -61,12 +61,12 @@ DatabaseSync.prototype.query = function (sql, bindings, callback) {
         for (var i = 0; i < stmt.bindParameterCount(); ++i)
           stmt.bind(i+1, bindings.shift());
       } else {
-        for (var key in bindings) 
+        for (var key in bindings)
           if (bindings.hasOwnProperty(key))
             stmt.bind(key, bindings[key]);
       }
     }
-      
+
     var rows = [];
 
     while (true) {
@@ -126,7 +126,7 @@ function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
   function unroll() {
     that.rolledBack = true;
   }
-    
+
   db.addListener("rollback", unroll);
 
   this.executeSql("BEGIN TRANSACTION");
@@ -143,9 +143,9 @@ function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
 }
 
 
-DatabaseSync.prototype.transaction = function (txCallback, errCallback, 
+DatabaseSync.prototype.transaction = function (txCallback, errCallback,
                                                successCallback) {
-  var tx = new SQLTransactionSync(this, txCallback, 
+  var tx = new SQLTransactionSync(this, txCallback,
                                   errCallback, successCallback);
 }
 

@@ -22,6 +22,7 @@ var db = sqlite.openDatabaseSync('test.db');
 var commits = 0;
 var rollbacks = 0;
 var updates = 0;
+/*
 db.addListener("commit", function () {
   commits++;
 });
@@ -35,7 +36,7 @@ db.addListener("update", function (operation, database, table, rowid) {
   //util.puts("update " + operation + " " + database + "." + table + " " + rowid);
   updates++;
 });
-
+*/
 
 
 db.query("CREATE TABLE egg (a,y,e)");
@@ -45,7 +46,7 @@ db.query("INSERT INTO egg (a) VALUES (1)", function () {
 var i2 = db.query("INSERT INTO egg (a) VALUES (?)", [5]);
 assert(i2.insertId == 2);
 db.query("UPDATE egg SET y='Y'; UPDATE egg SET e='E';");
-db.query("UPDATE egg SET y=?; UPDATE egg SET e=? WHERE ROWID=1", 
+db.query("UPDATE egg SET y=?; UPDATE egg SET e=? WHERE ROWID=1",
          ["arm","leg"] );
 db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", [1.01, 10e20, -0.0]);
 db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", ["one", "two", "three"]);
@@ -70,7 +71,7 @@ db.query("SELECT e FROM egg WHERE a = ?", [5], function (es) {
 
 db.transaction(function(tx) {
   tx.executeSql("CREATE TABLE tex (t,e,x)");
-  var i = tx.executeSql("INSERT INTO tex (t,e,x) VALUES (?,?,?)", 
+  var i = tx.executeSql("INSERT INTO tex (t,e,x) VALUES (?,?,?)",
                         ["this","is","Sparta"]);
   asserteq(i.rowsAffected, 1);
   var s = tx.executeSql("SELECT * FROM tex");
@@ -94,14 +95,14 @@ db.query("UPDATE test SET y = 10;", [], function () {
 
 db.transaction(function(tx) {
   tx.executeSql("SELECT * FROM test WHERE x = ?", [1], function (tx,records) {
-    for (var i = 0; records.rows.item(i); ++i) 
+    for (var i = 0; records.rows.item(i); ++i)
       asserteq(records.rows.item(i).z, 3);
   });
 });
 
 var na = db.query("");
 asserteq(na, null);
-  
+
 try {
   na = db.query("CRAPPY QUERY THAT DOESN'T WORK");
   asserteq("Apples", "Oranges");
@@ -122,7 +123,7 @@ asserteq(updates, 19);
 
 db.close();
 util.puts("OK\n");
-             
+
 // Perhaps do this, one day
 //var q = db.prepare("SELECT * FROM t WHERE rowid=?");
 //var rows = q.execute([1]);
