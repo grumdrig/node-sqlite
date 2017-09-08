@@ -20,13 +20,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define SCHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(*stmt))); return; }
 
-#define REQ_ARGS(N) if (args.Length() < (N)) { Nan::ThrowError("Expected " #N "arguments"); return; }
-
-#define REQ_STR_ARG(I, VAR)                                             \
-  if (args.Length() <= (I) || !args[I]->IsString()) {                   \
-    Nan::ThrowTypeError("Argument " #I " must be a string");                      \
-    return; }                                                           \
-  String::Utf8Value VAR(args[I]->ToString());
+#define REQ_ARGS(N) if (info.Length() < (N)) { Nan::ThrowError("Expected " #N "arguments"); return; }
 
 #define REQ_EXT_ARG(I, VAR)                                             \
   if (args.Length() <= (I) || !args[I]->IsExternal()) {                 \
@@ -83,9 +77,8 @@ private:
 protected:
   static void New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     if (!info.IsConstructCall()) {
-      /*
-      throw exception todo
-      */
+      Nan::ThrowError("Call as constructor with `new` expected");
+      return;
     }
 
     v8::String::Utf8Value filename(info[0]->ToString());
@@ -132,6 +125,7 @@ protected:
   static int CommitHook(void* v_this) {
     Nan::HandleScope scope;
     Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
+    Nan::MakeCallback(db, Nan::New("commit").ToLocalChecked(), 0, NULL);
     db->Emit(String::New("commit"), 0, NULL);
     // TODO: allow change in return value to convert to rollback...somehow
     return 0;
@@ -141,34 +135,45 @@ protected:
     Nan::HandleScope scope;
     Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
     db->Emit(String::New("rollback"), 0, NULL);
+    // Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New("rollback").ToLocalChecked(), 0, NULL);
   }
 
   static void UpdateHook(void* v_this, int operation, const char* database,
                          const char* table, sqlite_int64 rowid) {
     Nan::HandleScope scope;
     Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
-    Local<Value> args[] = { Int32::New(operation), String::New(database),
-                            String::New(table), Number::New(rowid) };
+    v8::Local<v8::Value> args[] = {
+      Nan::New(operation),
+      Nan::New(database).ToLocalChecked(),
+      Nan::New(table).ToLocalChecked(),
+      Nan::New<v8::Integer>(rowid)
+    };
     db->Emit(String::New("update"), 4, args);
+    // Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New("update").ToLocalChecked(), 4, args);
   }
   */
 
   static void Prepare(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-    /*
     Nan::HandleScope scope;
     Sqlite3Db* db = ObjectWrap::Unwrap<Sqlite3Db>(info.This());
-    REQ_STR_ARG(0, sql);
+    if (!info[0]->IsString()) {
+      Nan::ThrowTypeError("First argument must be a string");
+      return;
+    }
+    v8::String::Utf8Value sql(info[0]->ToString());
     sqlite3_stmt* stmt = NULL;
     const char* tail = NULL;
-    CHECK(sqlite3_prepare_v2(*db, *sql, -1, &stmt, &tail));
-    if (!stmt)
-      return Null();
-    Local<Value> arg = External::New(stmt);
-    Persistent<Object> statement(Statement::constructor->GetFunction()->NewInstance(1, &arg));
-    if (tail)
-      statement->Set(String::New("tail"), String::New(tail));
-    return scope.Close(statement);
-    */
+    CHECK(sqlite3_prepare_v2(db->db_, (const char*)*sql, -1, &stmt, &tail));
+    if (stmt) {
+      v8::Local<v8::Value> arg = Nan::New(stmt);
+      v8::Local<v8::Object> statement(Statement::NewInstance(arg));
+      if (tail) {
+        statement->Set(Nan::New("tail").ToLocalChecked(), Nan::New(tail).ToLocalChecked());
+      }
+      info.GetReturnValue().Set(statement);
+    } else {
+      info.GetReturnValue().Set(Nan::Null());
+    }
   }
 
   public: /* tmp */
@@ -196,14 +201,22 @@ protected:
       //exports->Set(Nan::New("Statement").ToLocalChecked(), tpl->GetFunction());
     }
 
-/*
     static void New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-      int I = 0;
-      REQ_EXT_ARG(0, stmt);
-      (new Statement((sqlite3_stmt*)stmt->Value()))->Wrap(info.This());
-      return args.This();
+      Statement* obj = new Statement((sqlite3_stmt*)info[0]->IntegerValue());
+      obj->Wrap(info.This());
+      info.GetReturnValue().Set(info.This());
     }
-    */
+
+    static v8::Local<v8::Object> NewInstance(v8::Local<v8::Value> arg) {
+      Nan::EscapableHandleScope scope;
+
+      const unsigned argc = 1;
+      v8::Local<v8::Value> argv[argc] = { arg };
+      v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
+      v8::Local<v8::Object> instance = cons->NewInstance(argc, argv);
+
+      return scope.Escape(instance);
+    }
 
   protected:
     explicit Statement(sqlite3_stmt* stmt) : stmt_(stmt) {}
@@ -219,32 +232,30 @@ protected:
     //
 
     static void Bind(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-      /*
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
 
       REQ_ARGS(2);
-      if (!args[0]->IsString() && !args[0]->IsInt32()) {
-        Nan::ThrowError("First argument must be a string or integer"));
+      if (!info[0]->IsString() && !info[0]->IsInt32()) {
+        Nan::ThrowError("First argument must be a string or integer");
         return;
       }
-      int index = args[0]->IsString() ?
-        sqlite3_bind_parameter_index(*stmt, *String::Utf8Value(args[0])) :
-        args[0]->Int32Value();
+      int index = info[0]->IsString() ?
+        sqlite3_bind_parameter_index(*stmt, *v8::String::Utf8Value(info[0])) :
+        info[0]->Int32Value();
 
-      if (args[1]->IsInt32()) {
-        sqlite3_bind_int(*stmt, index, args[1]->Int32Value());
-      } else if (args[1]->IsNumber()) {
-        sqlite3_bind_double(*stmt, index, args[1]->NumberValue());
-      } else if (args[1]->IsString()) {
-        String::Utf8Value text(args[1]);
+      if (info[1]->IsInt32()) {
+        sqlite3_bind_int(*stmt, index, info[1]->Int32Value());
+      } else if (info[1]->IsNumber()) {
+        sqlite3_bind_double(*stmt, index, info[1]->NumberValue());
+      } else if (info[1]->IsString()) {
+        v8::String::Utf8Value text(info[1]);
         sqlite3_bind_text(*stmt, index, *text, text.length(),SQLITE_TRANSIENT);
-      } else if (args[1]->IsNull() || args[1]->IsUndefined()) {
+      } else if (info[1]->IsNull() || info[1]->IsUndefined()) {
         sqlite3_bind_null(*stmt, index);
       } else {
-        Nan::ThrowError("Unable to bind value of this type"));
+        Nan::ThrowError("Unable to bind value of this type");
       }
       info.GetReturnValue().Set(info.This());
-      */
     }
 
     static void BindParameterCount(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -264,7 +275,7 @@ protected:
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
       SCHECK(sqlite3_finalize(*stmt));
       stmt->stmt_ = NULL;
-      //args.This().MakeWeak();
+      //info.This().MakeWeak();
     }
 
     static void Reset(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -274,12 +285,11 @@ protected:
     }
 
     static void Step(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-      /*
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
       int rc = sqlite3_step(*stmt);
       if (rc == SQLITE_ROW) {
-        Local<Object> row = Object::New();
+        v8::Local<v8::Object> row = Nan::New<v8::Object>();
         for (int c = 0; c < sqlite3_column_count(*stmt); ++c) {
           v8::Handle<v8::Value> value;
           switch (sqlite3_column_type(*stmt, c)) {
@@ -290,14 +300,14 @@ protected:
             value = Nan::New(sqlite3_column_double(*stmt, c));
             break;
           case SQLITE_TEXT:
-            value = Nan::New((const char*) sqlite3_column_text(*stmt, c));
+            value = Nan::New((const char*) sqlite3_column_text(*stmt, c)).ToLocalChecked();
             break;
           case SQLITE_NULL:
           default: // We don't handle any other types just now
             value = Nan::Undefined();
             break;
           }
-          row->Set(v8::String::NewSymbol(sqlite3_column_name(*stmt, c)), value);
+          row->Set(Nan::New(sqlite3_column_name(*stmt, c)).ToLocalChecked(), value);
         }
         info.GetReturnValue().Set(row);
       } else if (rc == SQLITE_DONE) {
@@ -305,7 +315,6 @@ protected:
       } else {
         Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(*stmt)));
       }
-      */
     }
 
   };

@@ -24,7 +24,7 @@ function mixin(target, source) {
 }
 
 var bindings = require("./build/Release/sqlite3_bindings");
-mixin(GLOBAL, bindings);
+mixin(global, bindings);
 mixin(exports, bindings);
 
 
