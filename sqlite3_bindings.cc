@@ -18,7 +18,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define CHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(db->db_)); return; }
 
-#define SCHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(*stmt))); return; }
+#define SCHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(stmt->stmt_))); return; }
 
 #define REQ_ARGS(N) if (info.Length() < (N)) { Nan::ThrowError("Expected " #N "arguments"); return; }
 
@@ -39,6 +39,21 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
     return;                                                             \
   }
 
+// int execRowCallback(void* cbarg, int ncols, char** columnText, char** columnNames) {
+//   v8::Local<v8::Value> result = Nan::MakeCallback(v8::Local<v8::Object> target,
+//                                                   v8::Local<v8::Function> func,
+//                                                   int argc,
+//                                                   v8::Local<v8::Value>* argv);
+// v8::Local<v8::Value> Nan::MakeCallback(v8::Local<v8::Object> target,
+//                                        v8::Local<v8::String> symbol,
+//                                        int argc,
+//                                        v8::Local<v8::Value>* argv);
+// v8::Local<v8::Value> Nan::MakeCallback(v8::Local<v8::Object> target,
+//                                        const char* method,
+//                                        int argc,
+//                                        v8::Local<v8::Value>* argv);
+
+
 
 class Sqlite3Db : public Nan::ObjectWrap {
 public:
@@ -53,6 +68,7 @@ public:
     Nan::SetPrototypeMethod(tpl, "changes", Changes);
     Nan::SetPrototypeMethod(tpl, "close", Close);
     Nan::SetPrototypeMethod(tpl, "lastInsertRowid", LastInsertRowid);
+    Nan::SetPrototypeMethod(tpl, "exec", Exec);
     Nan::SetPrototypeMethod(tpl, "prepare", Prepare);
 
     constructor.Reset(tpl->GetFunction());
@@ -153,6 +169,13 @@ protected:
   }
   */
 
+  static void Exec(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+    Nan::HandleScope scope;
+    Sqlite3Db* db = ObjectWrap::Unwrap<Sqlite3Db>(info.This());
+    v8::String::Utf8Value sql(info[0]->ToString());
+    CHECK(sqlite3_exec(db->db_, (const char*)*sql, NULL/*callback*/, 0/*cbarg*/, NULL/*errmsg*/));
+  }
+
   static void Prepare(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     Nan::HandleScope scope;
     Sqlite3Db* db = ObjectWrap::Unwrap<Sqlite3Db>(info.This());
@@ -160,6 +183,7 @@ protected:
       Nan::ThrowTypeError("First argument must be a string");
       return;
     }
+    // Nan::Persistent<v8::String> reference(info[0]->ToString());
     v8::String::Utf8Value sql(info[0]->ToString());
     sqlite3_stmt* stmt = NULL;
     const char* tail = NULL;
@@ -261,19 +285,19 @@ protected:
     static void BindParameterCount(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
-      info.GetReturnValue().Set(Nan::New(sqlite3_bind_parameter_count(*stmt)));
+      info.GetReturnValue().Set(Nan::New(sqlite3_bind_parameter_count(stmt->stmt_)));
     }
 
     static void ClearBindings(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
-      SCHECK(sqlite3_clear_bindings(*stmt));
+      SCHECK(sqlite3_clear_bindings(stmt->stmt_));
     }
 
     static void Finalize(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
-      SCHECK(sqlite3_finalize(*stmt));
+      SCHECK(sqlite3_finalize(stmt->stmt_));
       stmt->stmt_ = NULL;
       //info.This().MakeWeak();
     }
@@ -281,16 +305,22 @@ protected:
     static void Reset(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
-      SCHECK(sqlite3_reset(*stmt));
+      SCHECK(sqlite3_reset(stmt->stmt_));
     }
 
     static void Step(const Nan::FunctionCallbackInfo<v8::Value>& info) {
       Nan::HandleScope scope;
       Statement* stmt = ObjectWrap::Unwrap<Statement>(info.This());
-      int rc = sqlite3_step(*stmt);
+      // char shit[100];
+      // sprintf(shit, "Fucking %d", stmt->stmt_);
+      // Nan::ThrowError(shit);
+
+      int rc = sqlite3_step(stmt->stmt_);
+      Nan::ThrowError("Okay");
+      /*
       if (rc == SQLITE_ROW) {
         v8::Local<v8::Object> row = Nan::New<v8::Object>();
-        for (int c = 0; c < sqlite3_column_count(*stmt); ++c) {
+        for (int c = 0; c < sqlite3_column_count(stmt->stmt_); ++c) {
           v8::Handle<v8::Value> value;
           switch (sqlite3_column_type(*stmt, c)) {
           case SQLITE_INTEGER:
@@ -313,8 +343,9 @@ protected:
       } else if (rc == SQLITE_DONE) {
         info.GetReturnValue().Set(Nan::Null());
       } else {
-        Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(*stmt)));
+        Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(stmt->stmt_)));
       }
+      */
     }
 
   };

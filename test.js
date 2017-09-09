@@ -38,11 +38,11 @@ db.addListener("update", function (operation, database, table, rowid) {
 });
 */
 
-db.query("CREATE TABLE egg (a,y,e)");
-/*
+db.exec("CREATE TABLE egg (a,y,e)");
 db.query("INSERT INTO egg (a) VALUES (1)", function () {
   assert(this.insertId == 1);
 });
+/*
 var i2 = db.query("INSERT INTO egg (a) VALUES (?)", [5]);
 assert(i2.insertId == 2);
 db.query("UPDATE egg SET y='Y'; UPDATE egg SET e='E';");
