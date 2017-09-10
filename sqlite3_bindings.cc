@@ -119,8 +119,8 @@ protected:
     Sqlite3Db* dbo = new Sqlite3Db(db);
     dbo->Wrap(info.This());
 
-    /*
     sqlite3_commit_hook(db, CommitHook, dbo);
+    /*
     sqlite3_rollback_hook(db, RollbackHook, dbo);
     sqlite3_update_hook(db, UpdateHook, dbo);
     */
@@ -149,16 +149,20 @@ protected:
     info.GetReturnValue().Set(Nan::New((int32_t)sqlite3_last_insert_rowid(db->db_)));
   }
 
-/*
   static int CommitHook(void* v_this) {
     Nan::HandleScope scope;
     Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
-    Nan::MakeCallback(db, Nan::New("commit").ToLocalChecked(), 0, NULL);
-    db->Emit(String::New("commit"), 0, NULL);
-    // TODO: allow change in return value to convert to rollback...somehow
+    auto dbo = db->handle();
+    v8::Local<v8::Value> oncommit = dbo->Get(Nan::New("oncommit").ToLocalChecked());
+    if (oncommit->IsFunction()) {
+      auto f = oncommit.As<v8::Function>();
+      Nan::MakeCallback(dbo, f, 0, 0);
+      // TODO: allow change in return value to convert to rollback...somehow
+    }
     return 0;
   }
 
+/*
   static void RollbackHook(void* v_this) {
     Nan::HandleScope scope;
     Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);

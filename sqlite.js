@@ -123,18 +123,19 @@ function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
   }
 
   var that = this;
+  var oldrollback = db.onrollback;
   function unroll() {
     that.rolledBack = true;
+    if (oldrollback) oldrollback();
   }
-/*
-  db.addListener("rollback", unroll);
-*/
+  db.onrollback = unroll;
+
   this.executeSql("BEGIN TRANSACTION");
   txCallback(this);
   this.executeSql("COMMIT");
-/*
-  db.removeListener("rollback", unroll);
-*/
+
+  db.onrollback = oldrollback;
+
   if (!this.rolledBack && successCallback) {
     successCallback(this);
   } else if (this.rolledBack && errCallback) {

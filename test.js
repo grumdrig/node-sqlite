@@ -22,11 +22,11 @@ var commits = 0;
 var rollbacks = 0;
 var updates = 0;
 
-/*
-db.addListener("commit", function () {
-  commits++;
-});
+db.oncommit = function () { console.log("COMMIT"); commits++; };
+db.onrollback = function () { console.log("ROLLBACK"); rollbacks++; };
+db.onupdate = function () { console.log("UPDATE"); updates++; };
 
+/*
 db.addListener("rollback", function () {
   console.log("ROLLBACK");
   rollbacks++;
@@ -131,11 +131,12 @@ db.transaction(function(tx){
   tx.executeSql("ROLLBACK");
 });
 
+*/
 
 asserteq(commits, 14);
 asserteq(rollbacks, 1);
 asserteq(updates, 19);
-*/
+
 
 db.close();
 console.log("OK\n");
