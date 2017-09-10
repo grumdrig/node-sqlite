@@ -10,8 +10,8 @@ var assert = require("assert").ok;
 
 function asserteq(v1, v2) {
   if (v1 != v2) {
-    util.puts(util.inspect(v1));
-    util.puts(util.inspect(v2));
+    console.log(util.inspect(v1));
+    console.log(util.inspect(v2));
   }
   assert(v1 == v2);
 }
@@ -28,21 +28,36 @@ db.addListener("commit", function () {
 });
 
 db.addListener("rollback", function () {
-  util.puts("ROLLBACK");
+  console.log("ROLLBACK");
   rollbacks++;
 });
 
 db.addListener("update", function (operation, database, table, rowid) {
-  //util.puts("update " + operation + " " + database + "." + table + " " + rowid);
+  //console.log("update " + operation + " " + database + "." + table + " " + rowid);
   updates++;
 });
 */
+
+// console.log("bs");
+// var bs = sqlite.open("bs.db");
+// console.log("prep", bs);
+// var stmt = sqlite.prepare(bs, "CREATE TABLE IF NOT EXISTS bs (a)");
+// console.log("stmt", stmt);
+// console.log(sqlite.step(stmt));
+// stmt = sqlite.prepare(bs, "INSERT INTO bs (a) VALUES (2)")
+// console.log("stmt", stmt);
+// console.log(sqlite.step(stmt));
+// stmt = sqlite.prepare(bs, "SELECT * FROM bs")
+// console.log("stmt", stmt);
+// console.log(sqlite.step(stmt));
+
+
 
 db.exec("CREATE TABLE egg (a,y,e)");
 db.query("INSERT INTO egg (a) VALUES (1)", function () {
   assert(this.insertId == 1);
 });
-/*
+
 var i2 = db.query("INSERT INTO egg (a) VALUES (?)", [5]);
 assert(i2.insertId == 2);
 db.query("UPDATE egg SET y='Y'; UPDATE egg SET e='E';");
@@ -52,12 +67,12 @@ db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", [1.01, 10e20, -0.0]);
 db.query("INSERT INTO egg (a,y,e) VALUES (?,?,?)", ["one", "two", "three"]);
 
 db.query("SELECT * FROM egg", function (rows) {
-  util.puts(JSON.stringify(rows));
+  console.log(JSON.stringify(rows));
 });
 
 db.query("SELECT a FROM egg; SELECT y FROM egg", function (as, ys) {
-  util.puts("As " + JSON.stringify(as));
-  util.puts("Ys " + JSON.stringify(ys));
+  console.log("As " + JSON.stringify(as));
+  console.log("Ys " + JSON.stringify(ys));
   assert(as.length == 4);
   assert(ys.length == 4);
 });
@@ -109,6 +124,7 @@ try {
 } catch (e) {
 }
 
+/*
 db.transaction(function(tx){
   for (var i = 0; i < 3; ++i)
     tx.executeSql("INSERT INTO test VALUES (6,6,6)");
@@ -119,12 +135,11 @@ db.transaction(function(tx){
 asserteq(commits, 14);
 asserteq(rollbacks, 1);
 asserteq(updates, 19);
-
+*/
 
 db.close();
-util.puts("OK\n");
+console.log("OK\n");
 
 // Perhaps do this, one day
 //var q = db.prepare("SELECT * FROM t WHERE rowid=?");
 //var rows = q.execute([1]);
-*/
