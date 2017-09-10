@@ -120,10 +120,8 @@ protected:
     dbo->Wrap(info.This());
 
     sqlite3_commit_hook(db, CommitHook, dbo);
-    /*
     sqlite3_rollback_hook(db, RollbackHook, dbo);
     sqlite3_update_hook(db, UpdateHook, dbo);
-    */
 
     info.GetReturnValue().Set(info.This());
   }
@@ -151,39 +149,39 @@ protected:
 
   static int CommitHook(void* v_this) {
     Nan::HandleScope scope;
-    Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
-    auto dbo = db->handle();
-    v8::Local<v8::Value> oncommit = dbo->Get(Nan::New("oncommit").ToLocalChecked());
+    auto db = static_cast<Sqlite3Db*>(v_this)->handle();
+    v8::Local<v8::Value> oncommit = db->Get(Nan::New("oncommit").ToLocalChecked());
     if (oncommit->IsFunction()) {
-      auto f = oncommit.As<v8::Function>();
-      Nan::MakeCallback(dbo, f, 0, 0);
+      Nan::MakeCallback(db, oncommit.As<v8::Function>(), 0, 0);
       // TODO: allow change in return value to convert to rollback...somehow
     }
     return 0;
   }
 
-/*
   static void RollbackHook(void* v_this) {
     Nan::HandleScope scope;
-    Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
-    db->Emit(String::New("rollback"), 0, NULL);
-    // Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New("rollback").ToLocalChecked(), 0, NULL);
+    auto db = static_cast<Sqlite3Db*>(v_this)->handle();
+    v8::Local<v8::Value> onrollback = db->Get(Nan::New("onrollback").ToLocalChecked());
+    if (onrollback->IsFunction()) {
+      Nan::MakeCallback(db, onrollback.As<v8::Function>(), 0, 0);
+    }
   }
 
   static void UpdateHook(void* v_this, int operation, const char* database,
                          const char* table, sqlite_int64 rowid) {
     Nan::HandleScope scope;
-    Sqlite3Db* db = static_cast<Sqlite3Db*>(v_this);
+    auto db = static_cast<Sqlite3Db*>(v_this)->handle();
+    v8::Local<v8::Value> onupdate = db->Get(Nan::New("onupdate").ToLocalChecked());
     v8::Local<v8::Value> args[] = {
       Nan::New(operation),
       Nan::New(database).ToLocalChecked(),
       Nan::New(table).ToLocalChecked(),
-      Nan::New<v8::Integer>(rowid)
+      Nan::New<v8::Integer>((uint32_t)rowid)
     };
-    db->Emit(String::New("update"), 4, args);
-    // Nan::MakeCallback(Nan::GetCurrentContext()->Global(), Nan::New("update").ToLocalChecked(), 4, args);
+    if (onupdate->IsFunction()) {
+      Nan::MakeCallback(db, onupdate.As<v8::Function>(), 4, args);
+    }
   }
-  */
 
   static void Exec(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     Nan::HandleScope scope;

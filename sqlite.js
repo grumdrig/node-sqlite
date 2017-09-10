@@ -103,10 +103,6 @@ DatabaseSync.prototype.query = function (sql, bindings, callback) {
 
 
 
-// TODO: void *sqlite3_commit_hook(sqlite3*, int(*)(void*), void*);
-// TODO: void *sqlite3_rollback_hook(sqlite3*, void(*)(void *), void*);
-
-
 function SQLTransactionSync(db, txCallback, errCallback, successCallback) {
   this.database = db;
 

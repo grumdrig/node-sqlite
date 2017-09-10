@@ -124,14 +124,11 @@ try {
 } catch (e) {
 }
 
-/*
 db.transaction(function(tx){
   for (var i = 0; i < 3; ++i)
     tx.executeSql("INSERT INTO test VALUES (6,6,6)");
   tx.executeSql("ROLLBACK");
 });
-
-*/
 
 asserteq(commits, 14);
 asserteq(rollbacks, 1);
