@@ -27,37 +27,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define REQ_ARGS(N) if (info.Length() < (N)) { Nan::ThrowError("Expected " #N "arguments"); return; }
 
-#define REQ_EXT_ARG(I, VAR)                                             \
-  if (args.Length() <= (I) || !args[I]->IsExternal()) {                 \
-    Nan::ThrowTypeError("Argument " #I " invalid");                               \
-    return; }                                                           \
-  Local<External> VAR = Local<External>::Cast(args[I]);
-
-#define OPT_INT_ARG(I, VAR, DEFAULT)                                    \
-  int VAR;                                                              \
-  if (args.Length() <= (I)) {                                           \
-    VAR = (DEFAULT);                                                    \
-  } else if (args[I]->IsInt32()) {                                      \
-    VAR = args[I]->Int32Value();                                        \
-  } else {                                                              \
-    Nan::ThrowTypeError("Argument " #I " must be an integer");                    \
-    return;                                                             \
-  }
-
-// int execRowCallback(void* cbarg, int ncols, char** columnText, char** columnNames) {
-//   v8::Local<v8::Value> result = Nan::MakeCallback(v8::Local<v8::Object> target,
-//                                                   v8::Local<v8::Function> func,
-//                                                   int argc,
-//                                                   v8::Local<v8::Value>* argv);
-// v8::Local<v8::Value> Nan::MakeCallback(v8::Local<v8::Object> target,
-//                                        v8::Local<v8::String> symbol,
-//                                        int argc,
-//                                        v8::Local<v8::Value>* argv);
-// v8::Local<v8::Value> Nan::MakeCallback(v8::Local<v8::Object> target,
-//                                        const char* method,
-//                                        int argc,
-//                                        v8::Local<v8::Value>* argv);
-
 
 
 class Sqlite3Db : public Nan::ObjectWrap {
@@ -200,7 +169,6 @@ protected:
     }
   }
 
-  public: /* tmp */
 
   class Statement : public Nan::ObjectWrap {
   public:
