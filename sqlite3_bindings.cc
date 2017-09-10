@@ -17,16 +17,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <nan.h>
 
 
-
-#include <stdlib.h>
-inline const char * wrapHandle(void* h) {
-  static char buf[100];
-  snprintf(buf, 100, "%lu", uintptr_t(h));
-  return buf;
-}
-
-
-
 #define CHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(db->db_)); return; }
 
 #define SCHECK(rc) if ((rc) != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(stmt->stmt_))); return; }
@@ -362,97 +352,8 @@ protected:
 Nan::Persistent<v8::Function> Sqlite3Db::constructor;
 Nan::Persistent<v8::Function> Sqlite3Db::Statement::constructor;
 
-NAN_METHOD(Add) {
-  if (info.Length() < 2) {
-    Nan::ThrowTypeError("Wrong number of arguments");
-    return;
-  }
-
-  if (!info[0]->IsNumber() || !info[1]->IsNumber()) {
-    Nan::ThrowTypeError("Wrong arguments");
-    return;
-  }
-
-  double arg0 = info[0]->NumberValue();
-  double arg1 = info[1]->NumberValue();
-  v8::Local<v8::Number> num = Nan::New(arg0 + arg1);
-
-  info.GetReturnValue().Set(num);
-}
-
-
-NAN_METHOD(Open) {
-  sqlite3* db;
-  STRING_ARG(0, filename);
-  auto rc = sqlite3_open(*filename, &db);
-  if (rc != 0) {
-    Nan::ThrowError("Error opening database");
-    return;
-  } else {
-    info.GetReturnValue().Set(Nan::New(wrapHandle(db)).ToLocalChecked());
-  }
-}
-
-#define DB_ARG(N, NAME) STRING_ARG(N, NAME ## _s); sqlite3* NAME = (sqlite3*) atoll(*NAME ## _s);
-#define STMT_ARG(N, NAME) STRING_ARG(N, NAME ## _s); sqlite3_stmt* NAME = (sqlite3_stmt*) atoll(*NAME ## _s);
-
-
-NAN_METHOD(Prepare) {
-  Nan::HandleScope scope;
-  DB_ARG(0, db);
-  STRING_ARG(1, sql);
-  sqlite3_stmt* stmt = NULL;
-  const int rc = sqlite3_prepare_v2(db, *sql, -1, &stmt, NULL);
-  if (rc != SQLITE_OK) { Nan::ThrowError(sqlite3_errmsg(db)); return; }
-  if (stmt) {
-    info.GetReturnValue().Set(Nan::New(wrapHandle(stmt)).ToLocalChecked());
-  }
-}
-
-NAN_METHOD(Step) {
-  Nan::HandleScope scope;
-  STMT_ARG(0, stmt);
-  int rc = sqlite3_step(stmt);
-  if (rc == SQLITE_ROW) {
-    v8::Local<v8::Object> row = Nan::New<v8::Object>();
-    for (int c = 0; c < sqlite3_column_count(stmt); ++c) {
-      v8::Handle<v8::Value> value;
-      switch (sqlite3_column_type(stmt, c)) {
-      case SQLITE_INTEGER:
-        value = Nan::New(sqlite3_column_int(stmt, c));
-        break;
-      case SQLITE_FLOAT:
-        value = Nan::New(sqlite3_column_double(stmt, c));
-        break;
-      case SQLITE_TEXT:
-        value = Nan::New((const char*) sqlite3_column_text(stmt, c)).ToLocalChecked();
-        break;
-      case SQLITE_NULL:
-        value = Nan::Null();
-        break;
-      default: // We don't handle any other types just now
-        value = Nan::Undefined();
-        break;
-      }
-      row->Set(Nan::New(sqlite3_column_name(stmt, c)).ToLocalChecked(), value);
-    }
-    info.GetReturnValue().Set(row);
-  } else if (rc == SQLITE_DONE) {
-    info.GetReturnValue().Set(Nan::Null());
-  } else {
-    Nan::ThrowError(sqlite3_errmsg(sqlite3_db_handle(stmt)));
-  }
-}
-
-
-#define FUNCTION(NAME, FUNC) Nan::Set(exports, Nan::New(NAME).ToLocalChecked(), Nan::New<v8::FunctionTemplate>(FUNC)->GetFunction());
-
 void InitAll(v8::Local<v8::Object> exports) {
   Sqlite3Db::Init(exports);
-  FUNCTION("add", Add);
-  FUNCTION("open", Open);
-  FUNCTION("prepare", Prepare);
-  FUNCTION("step", Step);
 }
 
 NODE_MODULE(addon, InitAll)

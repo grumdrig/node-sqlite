@@ -26,33 +26,6 @@ db.oncommit = function () { console.log("COMMIT"); commits++; };
 db.onrollback = function () { console.log("ROLLBACK"); rollbacks++; };
 db.onupdate = function () { console.log("UPDATE"); updates++; };
 
-/*
-db.addListener("rollback", function () {
-  console.log("ROLLBACK");
-  rollbacks++;
-});
-
-db.addListener("update", function (operation, database, table, rowid) {
-  //console.log("update " + operation + " " + database + "." + table + " " + rowid);
-  updates++;
-});
-*/
-
-// console.log("bs");
-// var bs = sqlite.open("bs.db");
-// console.log("prep", bs);
-// var stmt = sqlite.prepare(bs, "CREATE TABLE IF NOT EXISTS bs (a)");
-// console.log("stmt", stmt);
-// console.log(sqlite.step(stmt));
-// stmt = sqlite.prepare(bs, "INSERT INTO bs (a) VALUES (2)")
-// console.log("stmt", stmt);
-// console.log(sqlite.step(stmt));
-// stmt = sqlite.prepare(bs, "SELECT * FROM bs")
-// console.log("stmt", stmt);
-// console.log(sqlite.step(stmt));
-
-
-
 db.exec("CREATE TABLE egg (a,y,e)");
 db.query("INSERT INTO egg (a) VALUES (1)", function () {
   assert(this.insertId == 1);
