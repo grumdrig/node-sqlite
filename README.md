@@ -12,7 +12,7 @@ Tested with Node version v8.4.0 (may not work with older versions)
 
 ### Synchronous Only
 
-Only synchronous access is supported! For an ansynchronous and
+Only synchronous access is supported! For an asynchronous and
 much more full-featured library, see
   https://github.com/mapbox/node-sqlite3
 
